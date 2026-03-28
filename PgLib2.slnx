@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="PgLib2.Objects/PgLib2.Objects.csproj" />
+  <Project Path="PgLib2/PgLib2.csproj" />
+</Solution>

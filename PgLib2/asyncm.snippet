@@ -1,0 +1,32 @@
+﻿<CodeSnippet Format="1.0.0">
+  <Header>
+    <Title>Async Method Template</Title>
+    <Shortcut>asyncm</Shortcut>
+    <Description>Async method with CancellationToken and ConfigureAwait(false)</Description>
+    <Author>ChatGPT</Author>
+  </Header>
+  <Snippet>
+    <Declarations>
+      <Literal>
+        <ID>returnType</ID>
+        <ToolTip>Return type</ToolTip>
+        <Default>Task&lt;T&gt;</Default>
+      </Literal>
+      <Literal>
+        <ID>methodName</ID>
+        <ToolTip>Method name</ToolTip>
+        <Default>MethodAsync</Default>
+      </Literal>
+    </Declarations>
+    <Code Language="csharp"><![CDATA[
+public async $returnType$ $methodName$(CancellationToken cancellationToken = default)
+{
+    cancellationToken.ThrowIfCancellationRequested();
+
+    // TODO: implementation
+
+    await Task.CompletedTask.ConfigureAwait(false);
+}
+]]></Code>
+  </Snippet>
+</CodeSnippet>
