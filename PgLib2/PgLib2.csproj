@@ -11,6 +11,7 @@
     <PackageReference Include="ZLinq" Version="1.5.5" />
     <PackageReference Include="ZLinq.Json" Version="1.5.5" />
     <PackageReference Include="ZLogger" Version="2.5.10" />
+    <PackageReference Include="SSH.NET" Version="2025.1.0" />
   </ItemGroup>
 
 </Project>

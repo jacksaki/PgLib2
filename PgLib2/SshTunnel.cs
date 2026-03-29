@@ -9,40 +9,43 @@ public class SshTunnel : IAsyncDisposable
 
     private SshClient? _sshClient;
     private ForwardedPortLocal? _forwardedPort;
-    private IConnectionConfig _config;
+    private SecureShellConfig _ssh;
+    private DatabaseConnectionConfig _dbConfig;
+    public DatabaseConnectionConfig DbConfig => _dbConfig;
 
-    public SshTunnel(IConnectionConfig config)
+    public uint LocalPort => _ssh.LocalPort ?? throw new InvalidOperationException("SSHトンネルが接続されていません。");
+    public SshTunnel(SecureShellConfig sshConfig, DatabaseConnectionConfig dbConfig)
     {
-        _config = config;
+        _ssh = sshConfig;
+        _dbConfig = dbConfig;
         _instances.Add(this);
+    }
+    public async Task<string> GetConnectionStringAsync()
+    {
+        return await Task.FromResult($"Host=\"127.0.0.1\";Port={this.LocalPort};Username=\"{this.DbConfig.UserName}\";Password=\"{this.DbConfig.Password}\";Database=\"{this.DbConfig.DatabaseName}\";{this.DbConfig.Option}");
     }
 
     public async Task ConnectAsync(CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
-        if (_config is not SSHConnectionConfig)
-        {
-            return;
-        }
 
         if (_sshClient?.IsConnected == true)
         {
             return;
         }
 
-        var conf = (SSHConnectionConfig)_config;
-        var ssh = conf.SSH;
-        ssh.LocalPort = LocalPortAllocator.Allocate();
+        _ssh.LocalPort = LocalPortAllocator.Allocate();
 
-        var connectionInfo = !string.IsNullOrEmpty(ssh.SshPrivateKey)
-            ? new ConnectionInfo(ssh.SshHostName, ssh.SshPort, ssh.SshUserName, new PrivateKeyAuthenticationMethod(ssh.SshUserName, new PrivateKeyFile(ssh.SshPrivateKey)))
-            : new ConnectionInfo(ssh.SshHostName, ssh.SshPort, ssh.SshUserName, new PasswordAuthenticationMethod(ssh.SshUserName, ssh.SshPassword));
+        var connectionInfo = !string.IsNullOrEmpty(_ssh.SshPrivateKey)
+            ? new ConnectionInfo(_ssh.SshHostName, _ssh.SshPort, _ssh.SshUserName, new PrivateKeyAuthenticationMethod(_ssh.SshUserName, new PrivateKeyFile(_ssh.SshPrivateKey)))
+            : new ConnectionInfo(_ssh.SshHostName, _ssh.SshPort, _ssh.SshUserName, new PasswordAuthenticationMethod(_ssh.SshUserName, _ssh.SshPassword));
 
         _sshClient = new SshClient(connectionInfo);
 
         await _sshClient.ConnectAsync(ct);
-        _forwardedPort = new ForwardedPortLocal("127.0.0.1", (uint)ssh.LocalPort.Value, conf.HostName, (uint)conf.Port);
+        _forwardedPort = new ForwardedPortLocal("127.0.0.1", (uint)_ssh.LocalPort.Value, _dbConfig.HostName, (uint)_dbConfig.Port);
         _sshClient.AddForwardedPort(_forwardedPort);
+        this.DbConfig.Tunnel = this;
         _forwardedPort.Start();
     }
 

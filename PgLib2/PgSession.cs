@@ -5,7 +5,7 @@ namespace PgLib2;
 
 public sealed class PgSession : IAsyncDisposable
 {
-    private readonly IConnectionConfig _config;
+    private readonly DatabaseConnectionConfig _config;
     private NpgsqlConnection? _connection;
     private NpgsqlTransaction? _transaction;
     private string? _connectionString;
@@ -21,20 +21,21 @@ public sealed class PgSession : IAsyncDisposable
 
     public ConnectionState State => _connection?.State ?? ConnectionState.Closed;
 
-    private PgSession(IConnectionConfig config)
+    private PgSession(DatabaseConnectionConfig config)
     {
         _config = config;
     }
 
 
     public static async Task<PgSession> CreateAsync(
-        IConnectionConfig config,
+        DatabaseConnectionConfig config,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var session = new PgSession(config);
         session._connectionString = await session.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
         session._connection = new NpgsqlConnection(session._connectionString);
+        await session.OpenAsync(cancellationToken).ConfigureAwait(false);
         return session;
     }
 
@@ -141,6 +142,7 @@ public sealed class PgSession : IAsyncDisposable
     {
         var cmd = this.Connection.CreateCommand();
         cmd.CommandType = commandType;
+        cmd.CommandText = query;
         if (parameters != null)
         {
             foreach (var p in parameters)

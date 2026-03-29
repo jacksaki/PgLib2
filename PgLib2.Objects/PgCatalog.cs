@@ -5,9 +5,9 @@ namespace PgLib2.Objects;
 
 public sealed class PgCatalog
 {
-    private readonly IConnectionConfig _config;
+    private readonly DatabaseConnectionConfig _config;
 
-    public PgCatalog(IConnectionConfig config)
+    public PgCatalog(DatabaseConnectionConfig config)
     {
         _config = config;
     }

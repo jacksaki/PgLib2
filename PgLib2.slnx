@@ -1,6 +1,7 @@
 <Solution>
+  <Project Path="PgLib2.ConsoleTest/PgLib2.ConsoleTest.csproj" Id="e483c1d6-0322-4178-b8fd-8aa2951bbc94" />
   <Project Path="PgLib2.Formatter/PgLib2.Formatter.csproj" Id="8cef0bd6-afcb-42b0-9e27-0b9651ce4ff3" />
   <Project Path="PgLib2.Objects/PgLib2.Objects.csproj" />
-  <Project Path="PgLib2.SSH/PgLib2.SSH.csproj" />
+  <Project Path="PgLib2.Tests/PgLib2.Tests.csproj" />
   <Project Path="PgLib2/PgLib2.csproj" />
 </Solution>
