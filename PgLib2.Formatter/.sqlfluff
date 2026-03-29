@@ -1,0 +1,34 @@
+[sqlfluff]
+# 使用するSQL方言（Postgresを指定）
+dialect = postgres
+
+# レイアウトの最大行長
+max_line_length = 100
+
+# インデントの設定
+indent_unit = space
+tab_width = 4
+
+# 特定のルールを無視する場合（例: エイリアスの明示的なASを強制しないなど）
+exclude_rules = LT07, L044
+
+[sqlfluff:indentation]
+# インデントのルール設定
+indented_joins = False
+indented_using_on = True
+
+[sqlfluff:rules:capitalisation.keywords]
+# キーワードは大文字に統一
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.identifiers]
+# 識別子（テーブル名・カラム名）は小文字に統一
+capitalisation_policy = lower
+
+[sqlfluff:rules:aliasing.table]
+# テーブルエイリアスには必ず "AS" をつける
+aliasing_preference = explicit
+
+[sqlfluff:rules:aliasing.column]
+# カラムエイリアスには必ず "AS" をつける
+aliasing_preference = explicit
