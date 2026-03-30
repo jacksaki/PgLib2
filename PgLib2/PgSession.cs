@@ -102,9 +102,10 @@ public sealed class PgSession : IAsyncDisposable
             await Task.Run(() => action(cancellationToken), cancellationToken).ConfigureAwait(false);
             await this.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
-        finally
+        catch 
         {
             await this.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
         }
     }
 

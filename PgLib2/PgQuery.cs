@@ -28,7 +28,7 @@ public class PgQuery
         _session.SetReaderActive(true);
         try
         {
-            var dr = await this.GetDataReaderAsync(sql, param, cancellationToken).ConfigureAwait(false);
+            await using var dr = await this.GetDataReaderAsync(sql, param, cancellationToken).ConfigureAwait(false);
 
             var result = new List<Dictionary<string, object?>>();
             var fieldCount = dr.FieldCount;

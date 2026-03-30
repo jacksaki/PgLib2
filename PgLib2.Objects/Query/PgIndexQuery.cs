@@ -38,7 +38,7 @@ INNER JOIN pg_namespace nt ON (nt.oid = t.relnamespace)
 INNER JOIN pg_namespace ni ON (ni.oid = t.relnamespace)
 INNER JOIN generate_subscripts(ix.indkey, 1) AS k ON true
 WHERE
-i.relkind = 'i'
+i.relkind IN('i', 'I')
 AND (@table_oid IS NULL OR t.oid = @table_oid)
 AND (@schema_name IS NULL OR ni.nspname = @schema_name::text)
 AND (@index_name IS NULL OR i.relname ILIKE @index_name::text)
