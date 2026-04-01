@@ -63,8 +63,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = DBNull.Value;
         sqlSet["index_name"]!.Value = DBNull.Value;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var ind in q.StreamAsync<PgIndex, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return ind;
@@ -78,8 +77,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["index_name"]!.Value = name;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         return await q.SelectSingleAsync<PgIndex, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct);
     }
 
@@ -91,8 +89,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["index_name"]!.Value = nameLike.Like(DBNull.Value);
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var ind in q.StreamAsync<PgIndex, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return ind;

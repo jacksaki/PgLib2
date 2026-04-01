@@ -54,8 +54,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = DBNull.Value;
         sqlSet["sequence_name"]!.Value = DBNull.Value;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var seq in q.StreamAsync<PgSequence, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return seq;
@@ -70,8 +69,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["sequence_name"]!.Value = name;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         return await q.SelectSingleAsync<PgSequence, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct);
     }
 
@@ -83,8 +81,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["sequence_name"]!.Value = nameLike.Like(DBNull.Value);
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var seq in q.StreamAsync<PgSequence, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return seq;

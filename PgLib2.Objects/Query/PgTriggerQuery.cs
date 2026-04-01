@@ -55,8 +55,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = DBNull.Value;
         sqlSet["trigger_name"]!.Value = DBNull.Value;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var trigger in q.StreamAsync<PgTrigger, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return trigger;
@@ -70,8 +69,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["trigger_name"]!.Value = name;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         return await q.SelectSingleAsync<PgTrigger, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false);
     }
 
@@ -83,8 +81,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["trigger_name"]!.Value = nameLike.Like(DBNull.Value);
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var trigger in q.StreamAsync<PgTrigger, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return trigger;

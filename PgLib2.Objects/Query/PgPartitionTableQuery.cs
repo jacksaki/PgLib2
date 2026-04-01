@@ -53,8 +53,7 @@ ORDER BY
         sqlSet["table_schema"]!.Value = schemaName;
         sqlSet["table_name"]!.Value = nameLike.Like(DBNull.Value);
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var table in q.StreamAsync<PgPartitionTable, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return table;
@@ -68,8 +67,7 @@ ORDER BY
         sqlSet["table_schema"]!.Value = schemaName;
         sqlSet["table_name"]!.Value = name;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         return await q.SelectSingleAsync<PgPartitionTable, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false);
     }
 }

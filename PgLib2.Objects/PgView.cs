@@ -10,7 +10,7 @@ public class PgView : PgRelationBase, IPgObject
     }
     public override async Task<string> GenerateDDLAsync(DDLOptions options, CancellationToken ct = default)
     {
-        var columns = await this.ListColumnsAsync().ToListAsync().ConfigureAwait(false);
+        var columns = await this.ListColumnsAsync(ct).ToListAsync(ct).ConfigureAwait(false);
         var sb = new System.Text.StringBuilder();
         sb.AppendLine($"CREATE OR REPLACE VIEW {this.SchemaName}.{this.Name} (");
         sb.AppendLine(columns.AsValueEnumerable<PgColumn>().OrderBy(x => x.OrdinalPosition).Select(x => x.ColumnName).JoinToString(",\n").Trim());

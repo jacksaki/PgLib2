@@ -15,7 +15,7 @@ public sealed class PgTable : PgRelationBase, IPgObject
     public override async Task<string> GenerateDDLAsync(DDLOptions options, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
-        var columns = await this.ListColumnsAsync().ToListAsync().ConfigureAwait(false);
+        var columns = await this.ListColumnsAsync(ct).ToListAsync(ct).ConfigureAwait(false);
         var sb = new System.Text.StringBuilder();
         sb.Append("CREATE TABLE ");
         if (options.AddSchema)
@@ -27,14 +27,14 @@ public sealed class PgTable : PgRelationBase, IPgObject
         sb.AppendLine(");");
         if (options.AddConstraints)
         {
-            await foreach (var constraint in this.ListConstraintsAsync())
+            await foreach (var constraint in this.ListConstraintsAsync(ct).ConfigureAwait(false))
             {
-                sb.AppendLine(await constraint.GenerateDDLAsync(options));
+                sb.AppendLine(await constraint.GenerateDDLAsync(options, ct).ConfigureAwait(false));
             }
         }
         if (options.AddIndexes)
         {
-            await foreach (var index in this.ListIndexesAsync())
+            await foreach (var index in this.ListIndexesAsync(ct).ConfigureAwait(false))
             {
                 if (options.AddConstraints)
                 {
@@ -43,7 +43,7 @@ public sealed class PgTable : PgRelationBase, IPgObject
                         continue;
                     }
                 }
-                sb.AppendLine(await index.GenerateDDLAsync(options));
+                sb.AppendLine(await index.GenerateDDLAsync(options, ct).ConfigureAwait(false));
             }
         }
         return sb.ToString();

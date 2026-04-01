@@ -10,8 +10,7 @@ internal class PgSchemaQuery
     internal static async IAsyncEnumerable<PgSchema> ListAsync(PgCatalog catalog, [EnumeratorCancellation] CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var schema in q.StreamAsync<PgSchema, PgCatalog>(catalog, SQL, (NpgsqlParameter[]?)null, ct).ConfigureAwait(false))
         {
             yield return schema;

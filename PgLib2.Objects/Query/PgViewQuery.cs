@@ -38,8 +38,7 @@ ORDER BY
         sqlSet["view_schema"]!.Value = schemaName;
         sqlSet["view_name"]!.Value = name;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         return await q.SelectSingleAsync<PgView, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false);
     }
 
@@ -50,8 +49,7 @@ ORDER BY
         sqlSet["view_schema"]!.Value = schemaName;
         sqlSet["view_name"]!.Value = nameLike.Like(DBNull.Value);
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var view in q.StreamAsync<PgView, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return view;

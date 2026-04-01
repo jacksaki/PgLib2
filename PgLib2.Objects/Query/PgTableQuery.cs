@@ -32,8 +32,7 @@ AND (@table_name IS NULL OR c.relname ILIKE @table_name::text)";
         sqlSet["table_schema"]!.Value = schemaName;
         sqlSet["table_name"]!.Value = name;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         return await q.SelectSingleAsync<PgTable, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false);
     }
 
@@ -44,8 +43,7 @@ AND (@table_name IS NULL OR c.relname ILIKE @table_name::text)";
         sqlSet["table_schema"]!.Value = schemaName;
         sqlSet["table_name"]!.Value = nameLike.Like(DBNull.Value);
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var table in q.StreamAsync<PgTable, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return table;

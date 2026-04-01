@@ -82,8 +82,7 @@ ORDER BY
         var sqlSet = GenerateSQLSet();
         sqlSet["table_oid"]!.Value = tableOid;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var result in q.StreamAsync<PgColumn, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return result;

@@ -60,8 +60,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["func_name"]!.Value = name;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         return await q.SelectSingleAsync<PgFunction, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false);
     }
 
@@ -72,8 +71,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["func_name"]!.Value = nameLike.Like(DBNull.Value);
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var f in q.StreamAsync<PgFunction, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return f;

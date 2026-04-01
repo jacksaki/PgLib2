@@ -5,18 +5,17 @@ namespace PgLib2.Objects;
 
 public sealed class PgCatalog
 {
-    private readonly DatabaseConnectionConfig _config;
+    internal PgSession Session { get; }
 
-    public PgCatalog(DatabaseConnectionConfig config)
+    private PgCatalog(PgSession session)
     {
-        _config = config;
+        this.Session = session;
+    }
+    public static PgCatalog Create(PgSession session)
+    {
+        return new PgCatalog(session);
     }
 
-    internal async Task<PgSession> CreateSessionAsync(CancellationToken cancellation)
-    {
-        cancellation.ThrowIfCancellationRequested();
-        return await PgSession.CreateAsync(_config, cancellation);
-    }
     public async IAsyncEnumerable<PgColumn> ListColumnsAsync(uint oid, [EnumeratorCancellation] CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();

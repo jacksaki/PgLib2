@@ -68,8 +68,7 @@ ORDER BY
         sqlSet["table_oid"]!.Value = tableOid;
         sqlSet["schema_name"]!.Value = DBNull.Value;
         sqlSet["constraint_name"]!.Value = DBNull.Value;
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var con in q.StreamAsync<PgConstraint, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return con;
@@ -84,8 +83,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["constraint_name"]!.Value = name;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         return await q.SelectSingleAsync<PgConstraint, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false);
     }
 
@@ -97,8 +95,7 @@ ORDER BY
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["constraint_name"]!.Value = nameLike.Like(DBNull.Value);
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var con in q.StreamAsync<PgConstraint, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return con;

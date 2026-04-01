@@ -27,8 +27,7 @@ ORDER BY
         var sqlSet = GenerateSQLSet();
         sqlSet["database_name"]!.Value = nameLike.Like(DBNull.Value);
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
         await foreach (var db in q.StreamAsync<PgDatabase, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {
             yield return db;
@@ -41,8 +40,7 @@ ORDER BY
         var sqlSet = GenerateSQLSet();
         sqlSet["database_name"]!.Value = name;
 
-        await using var session = await catalog.CreateSessionAsync(ct).ConfigureAwait(false);
-        var q = session.CreateQuery();
+        var q = catalog.Session.CreateQuery();
 
         return await q.SelectSingleAsync<PgDatabase, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false);
     }
