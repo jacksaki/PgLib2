@@ -41,7 +41,6 @@ ORDER BY
         sqlSet["database_name"]!.Value = name;
 
         var q = catalog.Session.CreateQuery();
-
         return await q.SelectSingleAsync<PgDatabase, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false);
     }
 }

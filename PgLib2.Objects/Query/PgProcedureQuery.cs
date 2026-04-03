@@ -60,6 +60,7 @@ ORDER BY
         var sqlSet = GenerateSQLSet();
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["proc_name"]!.Value = name;
+
         var q = catalog.Session.CreateQuery();
         return await q.SelectSingleAsync<PgProcedure, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct);
     }
@@ -68,6 +69,7 @@ ORDER BY
         var sqlSet = GenerateSQLSet();
         sqlSet["schema_name"]!.Value = schemaName;
         sqlSet["proc_name"]!.Value = nameLike.Like(DBNull.Value);
+
         var q = catalog.Session.CreateQuery();
         await foreach (var f in q.StreamAsync<PgProcedure, PgCatalog>(catalog, sqlSet.SQL, sqlSet.Parameters, ct).ConfigureAwait(false))
         {

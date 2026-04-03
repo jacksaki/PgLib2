@@ -1,29 +1,27 @@
 ﻿using Npgsql;
 using System.Data;
+using System.Data.Common;
 
 namespace PgLib2;
 
 public sealed class PgSession : IAsyncDisposable
 {
+    internal string? ConnectionString { get; private set; }
     private readonly DatabaseConnectionConfig _config;
-    private NpgsqlConnection? _connection;
-    private NpgsqlTransaction? _transaction;
-    private string? _connectionString;
+    public NpgsqlConnection PrimaryConnection { get; private set; }
+    public NpgsqlTransaction? Transaction { get; private set; }
+
     // Reader多重実行防止
     private bool _isReaderActive;
 
-    public NpgsqlConnection Connection
-        => _connection ?? throw new InvalidOperationException("Connection is not initialized.");
+    public bool IsInTransaction => this.Transaction != null;
 
-    public NpgsqlTransaction? Transaction => _transaction;
-
-    public bool IsInTransaction => _transaction != null;
-
-    public ConnectionState State => _connection?.State ?? ConnectionState.Closed;
+    public ConnectionState State => this.PrimaryConnection?.State ?? ConnectionState.Closed;
 
     private PgSession(DatabaseConnectionConfig config)
     {
         _config = config;
+        this.PrimaryConnection = new NpgsqlConnection();
     }
 
 
@@ -33,32 +31,31 @@ public sealed class PgSession : IAsyncDisposable
     {
         cancellationToken.ThrowIfCancellationRequested();
         var session = new PgSession(config);
-        session._connectionString = await session.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
-        session._connection = new NpgsqlConnection(session._connectionString);
+        session.ConnectionString = await session.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
+        session.PrimaryConnection.ConnectionString = session.ConnectionString;
         await session.OpenAsync(cancellationToken).ConfigureAwait(false);
         return session;
     }
-
-    // ===== Connection管理 =====
-    private async Task<string> GetConnectionStringAsync(CancellationToken cancellationToken = default)
+    public async Task CloseAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        return await _config.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
+        await this.PrimaryConnection.CloseAsync().ConfigureAwait(false);
     }
 
     public async Task OpenAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (this.State != ConnectionState.Open)
+        if (this.PrimaryConnection.State != ConnectionState.Open)
         {
-            await this.Connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await this.PrimaryConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
-    public async Task CloseAsync(CancellationToken cancellationToken = default)
+    // ===== Connection管理 =====
+    internal async Task<string> GetConnectionStringAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await this.Connection.CloseAsync().ConfigureAwait(false);
+        return await _config.GetConnectionStringAsync(cancellationToken).ConfigureAwait(false);
     }
 
     // ===== Transaction管理 =====
@@ -68,7 +65,7 @@ public sealed class PgSession : IAsyncDisposable
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _transaction = await this.Connection.BeginTransactionAsync(isolationLevel, cancellationToken).ConfigureAwait(false);
+        this.Transaction = await this.PrimaryConnection.BeginTransactionAsync(isolationLevel, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task CommitAsync(CancellationToken cancellationToken = default)
@@ -131,27 +128,7 @@ public sealed class PgSession : IAsyncDisposable
 
     public PgQuery CreateQuery()
     {
-        return new PgQuery(this);
-    }
-
-    // ===== 内部用 =====
-
-    internal NpgsqlCommand CreateCommand(
-        string query,
-        CommandType commandType,
-        NpgsqlParameter[]? parameters)
-    {
-        var cmd = this.Connection.CreateCommand();
-        cmd.CommandType = commandType;
-        cmd.CommandText = query;
-        if (parameters != null)
-        {
-            foreach (var p in parameters)
-            {
-                cmd.Parameters.Add(p);
-            }
-        }
-        return cmd;
+        return PgQuery.Create(this);
     }
 
     internal void EnsureNoActiveReader()
@@ -169,6 +146,6 @@ public sealed class PgSession : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        await this.Connection.DisposeAsync();
+        await this.PrimaryConnection.DisposeAsync();
     }
 }

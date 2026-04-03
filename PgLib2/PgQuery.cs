@@ -1,4 +1,5 @@
 ﻿using Npgsql;
+using Renci.SshNet;
 using System.Data;
 using System.Runtime.CompilerServices;
 
@@ -7,9 +8,32 @@ namespace PgLib2;
 public class PgQuery
 {
     private readonly PgSession _session;
-    internal PgQuery(PgSession session)
+    private NpgsqlConnection _connection;
+    internal static PgQuery Create(PgSession session)
+    {
+        var q = new PgQuery(session);
+        q._connection.ConnectionString = session.ConnectionString;
+        return q;
+    }
+    private PgQuery(PgSession session)
     {
         _session = session;
+        _connection = new NpgsqlConnection();
+    }
+
+    public async Task CloseAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _connection.CloseAsync().ConfigureAwait(false);
+    }
+
+    public async Task OpenAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (_connection.State != ConnectionState.Open)
+        {
+            await _connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        }
     }
 
     public async Task<int> ExecuteAsync(
@@ -18,7 +42,7 @@ public class PgQuery
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await using var cmd = _session.CreateCommand(sql, CommandType.Text, param.ToParameters());
+        await using var cmd = await this.CreateCommandAsync(sql, CommandType.Text, param.ToParameters(), cancellationToken);
         return await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -74,6 +98,28 @@ public class PgQuery
             }
         }
         return result;
+    }
+    internal async Task<NpgsqlCommand> CreateCommandAsync(
+    string query,
+    CommandType commandType,
+    NpgsqlParameter[]? parameters,
+    CancellationToken ct)
+    {
+        var cmd = _connection.CreateCommand();
+        cmd.CommandType = commandType;
+        cmd.CommandText = query;
+        if (parameters != null)
+        {
+            foreach (var p in parameters)
+            {
+                cmd.Parameters.Add(p);
+            }
+        }
+        if(_connection.State != ConnectionState.Open)
+        {
+            await _connection.OpenAsync(ct).ConfigureAwait(false);
+        }
+        return cmd;
     }
 
     #region SelectSingleAsync
@@ -261,7 +307,7 @@ public class PgQuery
     private async Task<NpgsqlDataReader> GetDataReaderAsync(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await using var cmd = _session.CreateCommand(sql, CommandType.Text, param.ToParameters());
+        await using var cmd = await this.CreateCommandAsync(sql, CommandType.Text, param.ToParameters(), cancellationToken);
         return await cmd.ExecuteReaderAsync(
             CommandBehavior.Default,
             cancellationToken
@@ -271,7 +317,7 @@ public class PgQuery
     private async Task<NpgsqlDataReader> GetSingleDataReaderAsync(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await using var cmd = _session.CreateCommand(sql, CommandType.Text, param.ToParameters());
+        await using var cmd = await this.CreateCommandAsync(sql, CommandType.Text, param.ToParameters(), cancellationToken);
         return await cmd.ExecuteReaderAsync(
             CommandBehavior.SingleRow,
             cancellationToken
