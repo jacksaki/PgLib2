@@ -90,11 +90,13 @@ public class PgPartitionTable : PgRelationBase, IPgObject
 
     }
     [DbColumn("table_schema")]
-    public string SchemaName { get; private set; } = string.Empty;
+    public override string SchemaName { get; protected set; } = string.Empty;
     [DbColumn("table_name")]
-    public string Name { get; private set; } = string.Empty;
+    public override string Name { get; protected set; } = string.Empty;
     [DbColumn("is_insertable_into")]
     public bool CanInsert { get; private set; }
+    [DbColumn("comment")]
+    public override string? Comment { get; protected set; }
     [DbColumn("partition_key")]
     public string? PartitionKey { get; private set; }
     [DbColumn("children")]

@@ -16,6 +16,7 @@ internal class PgForeignTableQuery
  c.oid
 ,nc.nspname::information_schema.sql_identifier AS table_schema
 ,c.relname::information_schema.sql_identifier AS table_name
+,obj_description(c.oid) AS comment
 ,(pg_relation_is_updatable(c.oid::regclass, false) & 8) = 8  AS is_insertable_into
 ,s.srvname AS server_name
 ,ft.ftoptions

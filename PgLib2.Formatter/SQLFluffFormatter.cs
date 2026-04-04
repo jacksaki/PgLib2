@@ -1,15 +1,16 @@
-﻿using Cysharp.Diagnostics;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
+using R3;
+using ObservableCollections;
+using YamaKit.Process;
 
 namespace PgLib2.Formatter;
 
 public class SQLFluffFormatter
 {
-    public delegate void LoggedEventHandler(object sender, LogItem e);
-    public event LoggedEventHandler Logged = delegate { };
     internal FormatterConfig Config { get; }
+    
     private SQLFluffFormatter(FormatterConfig config)
     {
         Config = config;
@@ -18,7 +19,7 @@ public class SQLFluffFormatter
     public string PythonDir => Path.Combine(this.BaseDir, this.Config.PythonDir);
     public string SQLFluffDir => Path.Combine(this.PythonDir, "Scripts");
     public string SQLFluffExe => Path.Combine(this.SQLFluffDir, "sqlfluff.exe");
-
+    public ObservableList<LogItem> Logs { get; } = new ObservableList<LogItem>();
     public static SQLFluffFormatter Create(string configPath)
     {
         var conf = JsonSerializer.Deserialize<FormatterConfig>(File.ReadAllText(configPath))!;
@@ -67,32 +68,9 @@ public class SQLFluffFormatter
     private async Task ExecuteCommandAsync(ProcessStartInfo psi, string? stdIn = null,CancellationToken ct=default)
     {
         ct.ThrowIfCancellationRequested();
-        var (_, stdOut, stdError) = ExtendedProcessX.GetDualAsyncEnumerableEx(psi, stdIn);
-
-        var consumeStdOut = Task.Run(async () =>
-        {
-            await foreach (var item in stdOut)
-            {
-                Logged(this, new LogItem(InstallLogItemType.Output, item));
-            }
-        }, ct);
-
-        var errorBuffered = new List<string>();
-        var consumeStdError = Task.Run(async () =>
-        {
-            await foreach (var item in stdError)
-            {
-                Logged(this, new LogItem(InstallLogItemType.Error, item));
-                errorBuffered.Add(item);
-            }
-        }, ct);
-        try
-        {
-            await Task.WhenAll(consumeStdOut, consumeStdError).ConfigureAwait(false);
-        }
-        catch (ProcessErrorException ex)
-        {
-            throw new Exception(ex.ExitCode.ToString());
-        }
+        var p = new ProcessXExtension();
+        p.OutputList.ObserveAdd().Subscribe(x => this.Logs.Add(new LogItem(InstallLogItemType.Output, x.Value)));
+        p.ErrorList.ObserveAdd().Subscribe(x => this.Logs.Add(new LogItem(InstallLogItemType.Error, x.Value)));
+        await p.ExecuteAsync(psi,stdIn,ct);
     }
 }

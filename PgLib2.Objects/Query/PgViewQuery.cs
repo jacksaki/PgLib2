@@ -17,6 +17,7 @@ internal class PgViewQuery
 ,nc.nspname::information_schema.sql_identifier AS view_schema
 ,c.relname::information_schema.sql_identifier AS view_name
 ,pg_get_viewdef(c.oid, true) AS view_definition
+,obj_description(c.oid) AS comment
 ,(pg_relation_is_updatable(c.oid::regclass, false) & 8) = 8  AS is_insertable_into
 FROM
  pg_namespace nc

@@ -15,6 +15,7 @@ internal class PgMaterializedViewQuery
  c.oid
 ,nc.nspname::information_schema.sql_identifier AS mview_schema
 ,c.relname::information_schema.sql_identifier AS mview_name
+,obj_description(c.oid) AS comment
 ,pg_get_viewdef(c.oid, true) AS view_definition
 ,(pg_relation_is_updatable(c.oid::regclass, false) & 8) = 8  AS is_insertable_into
 FROM

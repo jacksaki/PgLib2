@@ -52,9 +52,14 @@ public class PgForeignTable : PgRelationBase, IPgObject
     }
 
     [DbColumn("table_schema")]
-    public string SchemaName { get; private set; } = string.Empty;
+    public override string SchemaName { get; protected set; } = string.Empty;
+
     [DbColumn("table_name")]
-    public string Name { get; private set; } = string.Empty;
+    public override string Name { get; protected set; } = string.Empty;
+
+    [DbColumn("comment")]
+    public override string? Comment { get; protected set; }
+
     [DbColumn("is_insertable_into")]
     public bool CanInsert { get; private set; }
     [DbColumn("server_name")]

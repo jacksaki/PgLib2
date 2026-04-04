@@ -16,6 +16,7 @@ internal class PgPartitionTableQuery
  c.oid
 ,nc.nspname::information_schema.sql_identifier AS table_schema
 ,c.relname::information_schema.sql_identifier AS table_name
+,obj_description(c.oid) AS comment
 ,(c.relkind IN ('r', 'p') OR (c.relkind IN ('v', 'f') AND (pg_relation_is_updatable(c.oid::regclass, false) & 8) = 8)) AS is_insertable_into
 ,pg_get_partkeydef(c.oid) AS partition_key
 ,json_agg(
@@ -41,6 +42,7 @@ GROUP BY
 ,table_schema
 ,table_name
 ,is_insertable_into
+,comment
 ,partition_key
 ORDER BY
  table_schema

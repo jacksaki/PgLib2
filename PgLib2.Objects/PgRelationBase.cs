@@ -2,7 +2,7 @@
 
 namespace PgLib2.Objects;
 
-public abstract class PgRelationBase
+public abstract class PgRelationBase: IPgObject
 {
     public abstract Task<string> GenerateDDLAsync(DDLOptions options, CancellationToken ct = default);
     protected uint _oid;
@@ -11,6 +11,10 @@ public abstract class PgRelationBase
         _catalog = catalog;
     }
     protected PgCatalog _catalog;
+
+    public abstract string SchemaName { get; protected set; } 
+    public abstract string Name { get; protected set; } 
+    public abstract string? Comment { get; protected set; }
 
     public async IAsyncEnumerable<PgColumn> ListColumnsAsync([EnumeratorCancellation] CancellationToken ct = default)
     {

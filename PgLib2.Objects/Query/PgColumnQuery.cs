@@ -15,6 +15,7 @@ internal class PgColumnQuery
 ,nc.nspname AS table_schema
 ,c.relname AS table_name
 ,a.attname AS column_name
+,col_description(a.attrelid, a.attnum) AS comment
 ,a.attnum AS ordinal_position
 ,NOT t.typcategory IN('N', 'B') AS need_quote
 ,a.attnotnull OR (t.typtype = 'd' AND t.typnotnull) AS is_not_null

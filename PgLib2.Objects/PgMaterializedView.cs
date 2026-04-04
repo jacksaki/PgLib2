@@ -53,10 +53,14 @@ public class PgMaterializedView : PgRelationBase, IPgObject
         private set => base._oid = value;
     }
 
+    [DbColumn("comment")]
+    public override string? Comment { get; protected set; }
+
     [DbColumn("mview_schema")]
-    public string SchemaName { get; private set; } = string.Empty;
+    public override string SchemaName { get; protected set; } = string.Empty;
     [DbColumn("mview_name")]
-    public string Name { get; private set; } = string.Empty;
+    public override string Name { get; protected set; } = string.Empty;
+
     [DbColumn("view_definition")]
     public string? ViewDefinition { get; private set; }
     [DbColumn("is_insertable_into")]

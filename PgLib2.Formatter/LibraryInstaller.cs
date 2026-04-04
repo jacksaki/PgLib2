@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO.Compression;
 using System.Reflection;
 using System.Text.Json;
-
+using YamaKit.Process;
+using ObservableCollections;
+using System.Collections.ObjectModel;
 namespace PgLib2.Formatter;
 
 public class LibraryInstaller
@@ -22,14 +24,12 @@ public class LibraryInstaller
     public string SQLFluffExePath => Path.Combine(this.ScriptDir, "sqlfluff.exe");
     public string PipPath => Path.Combine(this.ScriptDir, "pip.exe");
     internal FormatterConfig Config { get; private set; }
-
-    public delegate void LoggedEventHandler(object sender, LogItem e);
-    public event LoggedEventHandler Logged = delegate { };
     public bool IsInstalled => File.Exists(this.SQLFluffExePath);
-
+    public ObservableList<LogItem> Logs { get; }
     private LibraryInstaller(FormatterConfig config)
     {
         this.Config = config;
+        this.Logs = new ObservableList<LogItem>();
     }
 
     public static LibraryInstaller Create(string confPath)
@@ -45,8 +45,6 @@ public class LibraryInstaller
     private async Task RunCommandAsync(string filePath, string args,CancellationToken ct=default)
     {
         ct.ThrowIfCancellationRequested();
-        var stdOuts = new List<string>();
-
         var psi = new ProcessStartInfo
         {
             FileName = filePath,
@@ -56,40 +54,15 @@ public class LibraryInstaller
             RedirectStandardError = true,
             CreateNoWindow = true
         };
-
-        var (_, stdOut, stdError) = ExtendedProcessX.GetDualAsyncEnumerableEx(psi);
-        var consumeStdOut = Task.Run(async () =>
-        {
-            await foreach (var item in stdOut)
-            {
-                Logged(this, new LogItem(InstallLogItemType.Output, item));
-            }
-        });
-
-        var errorBuffered = new List<string>();
-        var consumeStdError = Task.Run(async () =>
-        {
-            await foreach (var item in stdError)
-            {
-                Logged(this, new LogItem(InstallLogItemType.Error, item));
-                errorBuffered.Add(item);
-            }
-        }, ct);
-        try
-        {
-            await Task.WhenAll(consumeStdOut, consumeStdError).ConfigureAwait(false);
-        }
-        catch (ProcessErrorException ex)
-        {
-            throw new Exception(ex.ExitCode.ToString());
-        }
+        var p = new ProcessXExtension();
+        p.OutputList.ObserveAdd().Subscribe(x => this.Logs.Add(new LogItem(InstallLogItemType.Output, x.Value)));
+        p.ErrorList.ObserveAdd().Subscribe(x => this.Logs.Add(new LogItem(InstallLogItemType.Error, x.Value)));
+        await p.ExecuteAsync(psi, null, ct);
     }
 
     public async Task InstallAsync(CancellationToken ct=default)
     {
         ct.ThrowIfCancellationRequested();
-        var stdOuts = new List<string>();
-        var stdErrors = new List<string>();
 
         if (this.IsInstalled)
         {

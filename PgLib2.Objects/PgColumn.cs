@@ -69,6 +69,9 @@ public class PgColumn
     [DbColumn("column_name")]
     public string ColumnName { get; private set; } = string.Empty;
 
+    [DbColumn("comment")]
+    public string? Comment { get; private set; }
+
     [DbColumn("ordinal_position")]
     public short OrdinalPosition { get; private set; }
 
