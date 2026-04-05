@@ -1,14 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Formats.Asn1;
+using System.Numerics;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
+using System.Xml.Linq;
 using ZLinq;
+using ZLogger;
 
 namespace PgLib2.Schema.Dump;
 
-internal static class PgDumpArgumentExtension
+internal static class Extension
 {
+    public static bool IsValidLine(this string line)
+    {
+        if (line.StartsWith("--"))
+        {
+            return false;
+        }
+        if(line.StartsWith("\\"))
+        {
+            return false;
+        }
+        if(line.StartsWith("SET "))
+        {
+            return false;
+        }
+        if(string.IsNullOrWhiteSpace(line))
+        {
+            return false;
+        }
+        if(line.Contains("SELECT pg_catalog.set_config"))
+        {
+            return false;
+        }
+        return true;
+    }
     public static string? ToArgument(this PropertyInfo p, PgDumpArgumentAttribute attr, object value)
     {
         if (p.PropertyType == typeof(bool))

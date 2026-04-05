@@ -39,7 +39,10 @@ public class DumpGenerator
         var errors = new List<string>();
         var outputs=new List<string>();
         p.OutputList.ObserveAdd().Subscribe(x => {
-            list.Add(x.Value);
+            if (x.Value.IsValidLine())
+            {
+                list.Add(x.Value);
+            }
             outputs.Add(x.Value);
         });
         p.ErrorList.ObserveAdd().Subscribe(x =>
@@ -50,6 +53,7 @@ public class DumpGenerator
         try
         {
             await p.ExecuteAsync(psi, null, ct);
+
             return string.Join("\r\n", list);
         }
         catch 
