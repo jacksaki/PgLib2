@@ -1,4 +1,4 @@
-﻿using PgLib2.Objects;
+﻿using PgLib2.Schema;
 using System;
 using System.Collections.Generic;
 using System.Text;

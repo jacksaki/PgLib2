@@ -16,7 +16,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PgLib2.Formatter\PgLib2.Formatter.csproj" />
-    <ProjectReference Include="..\PgLib2.Objects\PgLib2.Objects.csproj" />
+    <ProjectReference Include="..\PgLib2.Schema.Dump\PgLib2.Schema.Dump.csproj" />
+    <ProjectReference Include="..\PgLib2.Schema\PgLib2.Schema.csproj" />
     <ProjectReference Include="..\PgLib2\PgLib2.csproj" />
   </ItemGroup>
 

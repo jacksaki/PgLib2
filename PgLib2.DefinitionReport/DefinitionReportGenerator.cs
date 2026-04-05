@@ -1,4 +1,4 @@
-﻿using PgLib2.Objects;
+﻿using PgLib2.Schema;
 using ZLinq;
 namespace PgLib2.DefinitionReport;
 
@@ -18,7 +18,7 @@ public class DefinitionReportGenerator
     public static async Task<DefinitionReportGenerator> CreateAsync(PgCatalog catalog, string schemaName, string relationName, CancellationToken ct = default)
     {
         var report = new DefinitionReportGenerator(catalog, schemaName, relationName);
-        var rels = typeof(PgRelationBase).Assembly.GetTypes().AsValueEnumerable().Where(t => t.IsSubclassOf(typeof(PgRelationBase)));
+        var rels = typeof(PgRelationBase).Assembly.GetTypes().AsValueEnumerable().Where(t => t.IsSubclassOf(typeof(PgRelationBase))).ToList();
         foreach (var rel in rels)
         {
             var obj = await catalog.GetAsync(rel, schemaName, relationName, ct) as PgRelationBase;

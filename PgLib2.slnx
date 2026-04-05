@@ -2,7 +2,8 @@
   <Project Path="PgLib2.ConsoleTest/PgLib2.ConsoleTest.csproj" Id="e483c1d6-0322-4178-b8fd-8aa2951bbc94" />
   <Project Path="PgLib2.DefinitionReport/PgLib2.DefinitionReport.csproj" Id="bee829c8-0aa6-49b9-a7c1-df5d41881bbc" />
   <Project Path="PgLib2.Formatter/PgLib2.Formatter.csproj" Id="8cef0bd6-afcb-42b0-9e27-0b9651ce4ff3" />
-  <Project Path="PgLib2.Objects/PgLib2.Objects.csproj" />
+  <Project Path="PgLib2.Schema.Dump/PgLib2.Schema.Dump.csproj" Id="3b57a7ba-2cf9-4c07-a95d-470cb0307243" />
+  <Project Path="PgLib2.Schema/PgLib2.Schema.csproj" />
   <Project Path="PgLib2.Tests/PgLib2.Tests.csproj" />
   <Project Path="PgLib2/PgLib2.csproj" />
   <Project Path="YamaKit/YamaKit.csproj" Id="7bb92da1-b8c3-48a9-be15-aa40f7b8fbe0" />
