@@ -2,6 +2,7 @@
 using YamaKit.Process;
 using R3;
 using ObservableCollections;
+using PgLib2.Formatter;
 namespace PgLib2.Schema.Dump;
 
 public class DumpGenerator
@@ -16,9 +17,18 @@ public class DumpGenerator
         return new DumpGenerator(conf);
     }
 
-    public async Task<string> GenerateDefinitionAsync(string schemaName,string tableName,CancellationToken ct=default)
+    public async Task<string> GenerateDefinitionAsync(string schemaName,string tableName,bool withFormat, CancellationToken ct=default)
     {
         ct.ThrowIfCancellationRequested();
+        if (withFormat)
+        {
+            var installer = LibraryInstaller.Create();
+            if (!installer.IsInstalled)
+            {
+                throw new Exception("Formatter not installed.");
+            }
+        }
+
         var dumpConf = await DumpConfig.LoadAsync();
         var settings = DumpSettings.Load(_conf, dumpConf);
         settings.SchemaName =schemaName;
@@ -35,6 +45,7 @@ public class DumpGenerator
             UseShellExecute = false,
         };
         var p = new ProcessXExtension();
+        p.AcceptableExitCodes = new int[] { 0, 1 };
         var list = new List<string>();
         var errors = new List<string>();
         var outputs=new List<string>();
@@ -54,7 +65,16 @@ public class DumpGenerator
         {
             await p.ExecuteAsync(psi, null, ct);
 
-            return string.Join("\r\n", list);
+            var sql  =string.Join("\r\n", list);
+            if (withFormat)
+            {
+                var formatter = SQLFluffFormatter.Create();
+                return await formatter.ExecuteAsync(sql);
+            }
+            else
+            {
+                return sql;
+            }
         }
         catch 
         {

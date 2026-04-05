@@ -10,7 +10,7 @@ namespace PgLib2.Formatter;
 public class SQLFluffFormatter
 {
     internal FormatterConfig Config { get; }
-    
+
     private SQLFluffFormatter(FormatterConfig config)
     {
         Config = config;
@@ -31,7 +31,7 @@ public class SQLFluffFormatter
         return SQLFluffFormatter.Create(confPath);
     }
 
-    public async Task FixSQLFileAsync(string sqlPath,CancellationToken ct=default)
+    public async Task FixSQLFileAsync(string sqlPath, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
         var psi = new ProcessStartInfo
@@ -48,7 +48,7 @@ public class SQLFluffFormatter
         await ExecuteCommandAsync(psi, null, ct);
     }
 
-    public async Task ExecuteAsync(string sql,CancellationToken ct=default)
+    public async Task<string> ExecuteAsync(string sql, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
         var psi = new ProcessStartInfo
@@ -62,15 +62,17 @@ public class SQLFluffFormatter
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        await ExecuteCommandAsync(psi, sql,ct);
+        return await ExecuteCommandAsync(psi, sql, ct);
     }
 
-    private async Task ExecuteCommandAsync(ProcessStartInfo psi, string? stdIn = null,CancellationToken ct=default)
+    private async Task<string> ExecuteCommandAsync(ProcessStartInfo psi, string? stdIn = null, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
         var p = new ProcessXExtension();
+        p.AcceptableExitCodes = new int[] { 0, 1 };
         p.OutputList.ObserveAdd().Subscribe(x => this.Logs.Add(new LogItem(InstallLogItemType.Output, x.Value)));
         p.ErrorList.ObserveAdd().Subscribe(x => this.Logs.Add(new LogItem(InstallLogItemType.Error, x.Value)));
-        await p.ExecuteAsync(psi,stdIn,ct);
+        await p.ExecuteAsync(psi, stdIn, ct);
+        return string.Join("\r\n", p.OutputList);
     }
 }

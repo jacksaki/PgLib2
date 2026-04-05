@@ -9,7 +9,7 @@ public class ProcessXExtension
 {
     public ObservableList<string> OutputList = new ObservableList<string>();
     public ObservableList<string> ErrorList = new ObservableList<string>();
-    public int[] AcceptableExitCodes { get; } = new int[1];
+    public int[] AcceptableExitCodes { get; set; } = new int[1];
     public async Task ExecuteAsync(ProcessStartInfo psi, string? input, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();
